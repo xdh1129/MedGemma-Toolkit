@@ -1,0 +1,196 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedGemma Text Inference</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+        }
+        .container {
+            width: 80%;
+            max-width: 600px;
+            padding: 2rem;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        textarea, input {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+        }
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        #response {
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap; /* preserve newlines but allow wrapping */
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MedGemma API Demo</h1>
+        <form id="inference-form">
+            <fieldset style="border: none; padding: 0;">
+                <legend>Inference Mode</legend>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="mode" value="text" checked>
+                        Text
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="mode" value="image">
+                        Image
+                    </label>
+                </div>
+            </fieldset>
+            <label for="prompt">Prompt:</label>
+            <textarea id="prompt" name="prompt" rows="4" required></textarea>
+            <label for="system">System Message:</label>
+            <input type="text" id="system" name="system" value="You are a helpful medical assistant.">
+            <div id="image-upload" style="display: none;">
+                <label for="image">Upload Image:</label>
+                <input type="file" id="image" name="image" accept="image/*">
+                <img id="image-preview" src="#" alt="Image preview" style="display: none; max-width: 100%; margin-top: 1rem; border-radius: 4px;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label class="radio-label">
+                    <input type="checkbox" id="chained-mode" name="chained_mode" value="true">
+                    Enable Chained Mode
+                </label>
+            </div>
+            <button type="submit">Send</button>
+        </form>
+        <h2>Response</h2>
+        <pre id="response" aria-live="polite"></pre>
+    </div>
+
+    <script>
+        const form = document.getElementById('inference-form');
+        const responseDiv = document.getElementById('response');
+        const imageUpload = document.getElementById('image-upload');
+        const modeInputs = document.querySelectorAll('input[name="mode"]');
+
+        modeInputs.forEach((input) => {
+            input.addEventListener('change', () => {
+                const isImageMode = input.value === 'image' && input.checked;
+                imageUpload.style.display = isImageMode ? 'block' : 'none';
+            });
+        });
+
+        const imageInput = document.getElementById('image');
+        const imagePreview = document.getElementById('image-preview');
+
+        imageInput.addEventListener('change', () => {
+            const file = imageInput.files?.[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.src = '#';
+                imagePreview.style.display = 'none';
+            }
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = new FormData(form);
+            const prompt = data.get('prompt');
+            const system = data.get('system');
+            const mode = data.get('mode');
+            const isChained = data.get('chained_mode') === 'true';
+
+            responseDiv.textContent = 'Loading...';
+
+            try {
+                let response;
+                let fetchUrl;
+                let body;
+                let headers = { 'accept': 'application/json' };
+
+                if (mode === 'image') {
+                    const imageInput = document.getElementById('image');
+                    const file = imageInput.files?.[0];
+
+                    if (!file) {
+                        throw new Error('Please select an image before submitting.');
+                    }
+
+                    const formData = new FormData();
+                    formData.append('prompt', prompt);
+                    formData.append('image', file);
+                    
+                    fetchUrl = isChained ? '/predict/chained_image' : '/predict/image';
+                    body = formData;
+                    // For multipart/form-data, the browser sets the Content-Type header automatically
+                } else { // text mode
+                    fetchUrl = isChained ? '/predict/chained_text' : '/predict/text';
+                    body = JSON.stringify({ prompt, system });
+                    headers['Content-Type'] = 'application/json';
+                }
+
+                response = await fetch(fetchUrl, {
+                    method: 'POST',
+                    headers: headers,
+                    body: body
+                });
+
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.final_response) { // From chained endpoint
+                    responseDiv.textContent = result.final_response.trim();
+                } else if (result.response) { // From single model endpoint
+                    responseDiv.textContent = result.response.trim();
+                }
+                else {
+                    responseDiv.textContent = JSON.stringify(result, null, 2);
+                }
+
+            } catch (error) {
+                responseDiv.textContent = `Error: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
