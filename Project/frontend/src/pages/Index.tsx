@@ -107,8 +107,8 @@ const Index = () => {
       }
 
       const formattedResponse = [
-        result.vlm_analysis ? `Vision Model Analysis:\n${result.vlm_analysis.trim()}` : null,
-        result.llm_report ? `Final Report:\n${result.llm_report.trim()}` : null,
+        result.vlm_output ? `Vision Model Analysis:\n${result.vlm_output.trim()}` : null,
+        result.llm_report ? `${result.llm_report.trim()}` : null,
       ]
         .filter(Boolean)
         .join("\n\n");

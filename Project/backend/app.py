@@ -16,7 +16,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     ollama_base_url: str = Field(default="http://ollama:11434")
     vlm_model: str = Field(default="hf.co/unsloth/medgemma-27b-it-GGUF:Q4_K_M")
-    llm_model: str = Field(default="hf.co/mradermacher/II-Medical-8B-GGUF:Q4_K_M")
+    llm_model: str = Field(default="llama3.1:70b")
     request_timeout_seconds: float = Field(default=180.0, gt=0)
 
 
@@ -39,6 +39,7 @@ http_client = httpx.AsyncClient(timeout=httpx.Timeout(settings.request_timeout_s
 
 
 class AnalyzeResponse(BaseModel):
+    vlm_output: str
     llm_report: str
 
 
@@ -51,7 +52,7 @@ async def _call_ollama_generate(
         "model": model,
         "prompt": prompt_text,
         "stream": False,
-        "options": {"temperature": 0.2},
+        "options": {"temperature": 0},
     }
     if image_b64:
         payload["images"] = [image_b64]
@@ -155,7 +156,7 @@ async def healthcheck() -> Dict[str, str]:
 
 @app.post("/api/analyze/", response_model=AnalyzeResponse)
 async def analyze_case(
-    prompt: str = Form(..., min_length=1, max_length=2000),
+    prompt: str = Form(..., min_length=0, max_length=2000),
     image: Optional[UploadFile] = File(default=None),
 ) -> JSONResponse:
     image_b64: Optional[str] = None
@@ -169,5 +170,5 @@ async def analyze_case(
     vlm_result = await run_vlm(prompt, image_b64)
     llm_report = await run_llm(prompt, vlm_result)
 
-    response = AnalyzeResponse(llm_report=llm_report)
+    response = AnalyzeResponse(vlm_output=vlm_result, llm_report=llm_report)
     return JSONResponse(content=response.model_dump())
