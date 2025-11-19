@@ -16,7 +16,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     ollama_base_url: str = Field(default="http://ollama:11434")
     vlm_model: str = Field(default="hf.co/unsloth/medgemma-27b-it-GGUF:Q4_K_M")
-    llm_model: str = Field(default="llama3.1:70b")
+    llm_model: str = Field(default="hf.co/mradermacher/II-Medical-8B-GGUF:Q4_K_M")
     request_timeout_seconds: float = Field(default=180.0, gt=0)
 
 

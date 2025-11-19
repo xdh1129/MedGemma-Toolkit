@@ -74,7 +74,7 @@ prime_model() {
 }
 
 prime_model "hf.co/unsloth/medgemma-27b-it-GGUF:Q4_K_M"
-prime_model "llama3.1:70b"
+prime_model "hf.co/mradermacher/II-Medical-8B-GGUF:Q4_K_M"
 
 echo "Starting Docker services..."
 ${COMPOSE_CMD} up --build "$@"

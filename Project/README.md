@@ -53,7 +53,7 @@ If the application is running on a remote workstation, you can access the fronte
 
 ## Services
 
-- **`frontend`**: A React application built with Vite, served by Nginx.
+- **`frontend`**: A React application built with Vite (see `chat-frontend/`), served by Nginx.
   - **Port:** `8080` on the host.
 - **`backend`**: A Python application.
   - **Port:** `8000` on the host.

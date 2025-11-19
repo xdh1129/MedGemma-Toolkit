@@ -1,0 +1,5 @@
+{
+  "name": "MedGemma",
+  "description": "A specialized AI medical assistant dialogue interface designed to provide health and pharmaceutical information in a conversational format.",
+  "requestFramePermissions": []
+}
