@@ -186,32 +186,22 @@ const App: React.FC = () => {
       setCurrentSessionId(newSessionId);
     }
 
-    const modelMsgId = (Date.now() + 1).toString();
-    const placeholderMessage: Message = {
-      id: modelMsgId,
-      role: Role.MODEL,
-      content: '',
-      timestamp: Date.now(),
-      isStreaming: true,
-    };
-
-    setMessages((prev) => [...prev, placeholderMessage]);
-
     try {
       const response = await analyzeCase(userText, imageFile);
       const formatted = formatModelResponse(response.vlm_output, response.llm_report);
 
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === modelMsgId ? { ...msg, content: formatted, isStreaming: false } : msg,
-        ),
-      );
+      const modelMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: Role.MODEL,
+        content: formatted,
+        timestamp: Date.now(),
+      };
+      setMessages((prev) => [...prev, modelMsg]);
     } catch (err) {
       console.error('Analysis error:', err);
       const detail =
         err instanceof Error ? err.message : 'Failed to get response. Please try again.';
       setError(detail);
-      setMessages((prev) => prev.filter((msg) => msg.id !== modelMsgId));
     } finally {
       setIsLoading(false);
     }
@@ -297,9 +287,9 @@ const App: React.FC = () => {
               <ChatBubble key={msg.id} message={msg} />
             ))}
 
-            {isLoading && messages[messages.length - 1]?.role !== Role.MODEL && (
+            {isLoading && (
               <div className="mb-6 flex justify-start w-full max-w-3xl">
-                <TypingIndicator />
+                <TypingIndicator text="Analyzing..." />
               </div>
             )}
 

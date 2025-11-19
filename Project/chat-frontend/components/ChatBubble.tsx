@@ -18,8 +18,16 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
   };
 
   return (
-    <div className={`group flex w-full mb-6 ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className={`flex max-w-3xl w-full md:w-[85%] ${isUser ? 'flex-row-reverse' : 'flex-row'} gap-4`}>
+    <div
+      className={`group flex w-full mb-6 ${
+        isUser ? 'justify-end' : 'justify-start'
+      } px-3 sm:px-6 lg:px-12 xl:px-20`}
+    >
+      <div
+        className={`flex w-full max-w-3xl ${
+          isUser ? 'flex-row-reverse' : 'flex-row'
+        } gap-4 items-start`}
+      >
         
         {/* Avatar */}
         <div className="flex-shrink-0">

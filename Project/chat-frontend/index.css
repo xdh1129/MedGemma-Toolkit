@@ -16,3 +16,9 @@ body {
 #root {
   height: 100vh;
 }
+
+@media (max-width: 768px) {
+  .max-w-3xl {
+    max-width: 100%;
+  }
+}
