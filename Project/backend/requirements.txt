@@ -4,3 +4,6 @@ httpx
 python-multipart
 pydantic-settings
 sse-starlette
+langgraph
+langchain-ollama
+langchain-core
