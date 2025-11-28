@@ -202,7 +202,7 @@ const App: React.FC = () => {
           if (state === 'queued') {
             updateModelContent('Queued... awaiting GPU availability.');
           } else if (state === 'processing') {
-            updateModelContent('Processing...');
+            updateModelContent('Analyzing...');
           }
         },
         onVlmToken: (token) => {
