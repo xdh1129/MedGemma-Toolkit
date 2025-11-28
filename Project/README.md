@@ -15,7 +15,7 @@ Before you begin, ensure you have the following installed on your workstation:
 1.  **Clone the repository:**
     ```bash
     git clone <repository-url>
-    cd NL_Project
+    cd Project
     ```
 
 2.  **Run the start script:**
